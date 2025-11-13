@@ -1,6 +1,6 @@
 # Pixel Runner
 
-Tiny endless-runner on a plain HTML `<canvas>`. Pure HTML/CSS/JS, no build tools.
+Tiny endless-runner on a plain HTML `<canvas>`. Pure HTML/CSS/JS, no build-in tools.
 
 ## Play
 - Open `index.html` in a browser, or enable GitHub Pages on the repo.
