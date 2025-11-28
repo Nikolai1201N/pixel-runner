@@ -1,17 +1,39 @@
 (() => {
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
+  const helpBtn = document.getElementById('helpBtn');
+  const helpModal = document.getElementById('helpModal');
+  const closeHelp = document.getElementById('closeHelp');
+
+  const GROUND_Y = 300;
+  const MAX_JUMP_HEIGHT = 80;
+  const COIN_MIN_Y = GROUND_Y - MAX_JUMP_HEIGHT;
+  const COIN_MAX_Y = GROUND_Y;
 
   const keys = new Set();
-  const hero = { x: 50, y: 300, w: 32, h: 32, vy: 0, onGround: true };
+  const hero = { x: 50, y: GROUND_Y, w: 32, h: 32, vy: 0, onGround: true };
+  const world = { score:0, lives:3, hero, coins:[], spikes:[] };
   let last = performance.now();
 
-  const world = { score:0, lives:3, hero, coins:[], spikes:[] };
-
   function spawn(){
-    if (Math.random() < 0.03) world.coins.push({ x: Math.random()* (canvas.width-16)|0, y:120, w:16, h:16 });
-    if (Math.random() < 0.02) world.spikes.push({ x: canvas.width+10, y:308, w:24, h:24 });
+    if (Math.random() < 0.03) {
+      const minY = 220;
+      const maxY = 300;
+      const coinY = (minY + Math.random() * (maxY - minY)) | 0;
+      world.coins.push({
+        x: canvas.width + 20,
+        y: coinY,
+        w: 16,
+        h: 16
+      });
+    }
+
+    if (Math.random() < 0.02) {
+      world.spikes.push({ x: canvas.width + 10, y: 308, w: 24, h: 24 });
+    }
   }
+
+
 
   function aabb(a,b){ 
     return !(a.x+a.w<b.x || b.x+b.w<a.x || a.y+a.h<b.y || b.y+b.h<a.y);
@@ -24,9 +46,12 @@
     if (keys.has('Space') && hero.onGround){ 
       hero.vy = -380; hero.onGround = false; 
     }
-    hero.vy += 900*dt; hero.y += hero.vy*dt;
+    hero.vy += 900*dt;
+    hero.y += hero.vy*dt;
     if (hero.y >= 300){
-      hero.y=300; hero.vy=0; hero.onGround=true; 
+      hero.y=300;
+      hero.vy=0;
+      hero.onGround=true; 
     }
     spawn();
     world.coins.forEach(c => c.x -= 200*dt);
@@ -93,7 +118,6 @@
     paused = false;
     gameOver = false;
   }
-
   
   window.addEventListener('keydown', e => {
     if (e.key.toLowerCase() === 'r') start();
@@ -117,10 +141,6 @@
         if(paused) paused = !paused;
       }
     });
-
-  const helpBtn = document.getElementById('helpBtn');
-  const helpModal = document.getElementById('helpModal');
-  const closeHelp = document.getElementById('closeHelp');
 
   if (helpBtn && helpModal && closeHelp) {
     helpBtn.addEventListener('click', () => {
