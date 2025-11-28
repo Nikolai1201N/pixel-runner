@@ -30,10 +30,23 @@
     }
     spawn();
     world.coins.forEach(c => c.x -= 200*dt);
-    world.spikes.forEach(s => s.x -= 220*dt);
-    world.coins = world.coins.filter(c => !aabb(hero,c) ? true : (world.score++, false));
-    world.spikes = world.spikes.filter(s => !aabb(hero,s) ? true : (world.lives--, false));
-    if (world.lives<=0) /* stop later */;
+    world.spikes.forEach(s => s.x -= 220 * dt);
+    world.coins = world.coins.filter(c => !aabb(hero, c) ? true : (world.score++, false));
+
+    world.spikes = world.spikes.filter(s => {
+      if (!aabb(hero, s)) return true;
+      if (world.lives > 0) {
+        world.lives--;
+      }
+      return false;
+    });
+
+    // trigger Game Over once
+    if (world.lives <= 0 && !gameOver) {
+      world.lives = 0;      // clamp at 0
+      gameOver = true;
+      paused = true;
+    }
   }
 
   function draw(){
@@ -45,14 +58,23 @@
     ctx.fillStyle='#ff6b6b'; world.spikes.forEach(s => ctx.fillRect(s.x,s.y,s.w,s.h));
     document.getElementById('score').textContent = world.score;
     document.getElementById('lives').textContent = world.lives;
+
+    if (gameOver) {
+      ctx.fillStyle = '#000a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.font = '20px system-ui';
+      ctx.fillText('Game Over - Press R to restart', canvas.width / 2, canvas.height / 2);
+    }
   }
 
   let paused = false;
-  function loop(now=performance.now()){
-    const dt = Math.min(0.033,(now-last)/1000); last = now;
-    if (!paused) { 
-      update(dt); 
-    }
+  let gameOver = false;
+  function loop(now = performance.now()){
+    const dt = Math.min(0.033, (now - last) / 1000);
+    last = now;
+    if (!paused && !gameOver) update(dt);
     draw();
     requestAnimationFrame(loop);
   }
@@ -68,7 +90,10 @@
     world.coins = [];
     world.spikes = [];
     last = performance.now();
+    paused = false;
+    gameOver = false;
   }
+
   
   window.addEventListener('keydown', e => {
     if (e.key.toLowerCase() === 'r') start();
